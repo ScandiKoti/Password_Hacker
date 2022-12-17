@@ -3,7 +3,7 @@ import sys
 
 
 def main():
-    ip_address, port, message = sys.argv[1:]
+    ip_address, port, message = sys.argv[1:]  # Your program will receive command line arguments
     with socket.socket() as conn:
         conn.connect((ip_address, int(port)))
         conn.send(message.encode())
