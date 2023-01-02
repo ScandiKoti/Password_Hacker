@@ -4,22 +4,27 @@ import string
 import itertools
 
 
+def password_generator(index=1):
+    characters = string.ascii_lowercase + string.digits
+    while True:
+        for password in itertools.product(characters, repeat=index):
+            yield password
+        index += 1
+
+
 def main():
     ip_address, port = sys.argv[1:]
     with socket.socket() as conn:
         conn.connect((ip_address, int(port)))
-        n = 1
-        wrong_password = True
-        while wrong_password:
-            characters = string.ascii_lowercase + string.digits
-            for message in itertools.product(characters, repeat=n):
-                conn.send(''.join(message).encode())
-                response = conn.recv(1024)
-                if response.decode() == 'Connection success!':
-                    wrong_password = False
-                    print(''.join(message))
-                    break
-            n += 1
+        massage = password_generator()
+        while True:
+            password = next(massage)
+            conn.send(''.join(password).encode())
+            response = conn.recv(1024)
+            if response.decode() == 'Wrong password!':
+                continue
+            print(''.join(password))
+            break
 
 
 if __name__ == "__main__":
