@@ -1,15 +1,16 @@
 import socket
 import sys
-import string
 import itertools
+import os
 
 
-def password_generator(index=1):
-    characters = string.ascii_lowercase + string.digits
+def password_generator():
+    with open(file_path) as file:
+        passwords = file.read().splitlines()
     while True:
-        for password in itertools.product(characters, repeat=index):
-            yield password
-        index += 1
+        for pas in passwords:
+            for var in itertools.product(*([char.lower(), char.upper()] for char in pas)):
+                yield var
 
 
 def main():
@@ -28,4 +29,5 @@ def main():
 
 
 if __name__ == "__main__":
+    file_path = os.path.join(os.path.dirname(__file__), "passwords.txt")
     main()
